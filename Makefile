@@ -26,7 +26,7 @@ clean:
 	rm -rf .pytest_cache .ruff_cache site/
 
 docs-dev:
-	uv run mkdocs serve
+	uv run --group docs mkdocs serve
 
 docs-build:
-	uv run mkdocs build
+	uv run --group docs mkdocs build
