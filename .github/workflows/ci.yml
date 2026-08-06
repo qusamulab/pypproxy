@@ -23,10 +23,10 @@ jobs:
         run: uv sync
 
       - name: Lint (ruff)
-        run: uv run ruff check pypproxy/
+        run: uv run ruff check pypproxy tests
 
       - name: Format check (ruff)
-        run: uv run ruff format --check pypproxy/
+        run: uv run ruff format --check pypproxy tests
 
   test:
     runs-on: ubuntu-latest

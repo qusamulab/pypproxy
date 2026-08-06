@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/paxy/
+      url: https://pypi.org/project/pypproxy/
     steps:
       - uses: actions/download-artifact@v8
         with:

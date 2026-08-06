@@ -9,8 +9,9 @@ vendor/
 web/node_modules/
 web/dist/
 
-# paxy runtime
-.paxy/
+# pypproxy runtime
+.pypproxy/
+*.db
 
 # Editors
 .vscode/
