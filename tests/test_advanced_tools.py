@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 
-from pypproxy.analytics.stats import compute_from_entries
-from pypproxy.codegen.generator import to_curl, to_fetch, to_httpie, to_python_requests
-from pypproxy.openapi.generator import generate, to_json, to_yaml
+from pypproxy.reporting.analytics import compute_from_entries
+from pypproxy.reporting.openapi import generate, to_json, to_yaml
 from pypproxy.store.models import Entry
+from pypproxy.tools.codegen import to_curl, to_fetch, to_httpie, to_python_requests
 
 
 def make_entry(**kwargs) -> Entry:
@@ -235,7 +235,7 @@ def test_stats_to_dict():
 
 
 def test_cookie_audit():
-    from pypproxy.security.advanced_checks import audit_cookies
+    from pypproxy.security.advanced import audit_cookies
 
     e = make_entry()
     e.resp_headers = {"set-cookie": ["session=abc; Path=/"]}  # missing Secure/HttpOnly
@@ -246,7 +246,7 @@ def test_cookie_audit():
 
 
 def test_cookie_audit_safe():
-    from pypproxy.security.advanced_checks import audit_cookies
+    from pypproxy.security.advanced import audit_cookies
 
     e = make_entry()
     e.resp_headers = {"set-cookie": ["session=abc; Path=/; Secure; HttpOnly; SameSite=Strict"]}

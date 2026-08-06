@@ -4,17 +4,17 @@ import json
 
 import pytest
 
-from pypproxy.ab_test.runner import ABResult
-from pypproxy.macro.runner import (
+from pypproxy.reporting.report import generate_html, generate_markdown
+from pypproxy.security.idor import _extract_id_params, _generate_test_ids
+from pypproxy.session import SessionManager
+from pypproxy.store.models import Entry
+from pypproxy.tools.ab_test import ABResult
+from pypproxy.tools.macro import (
     MacroStep,
     macro_from_entries,
     macro_from_json,
     macro_to_json,
 )
-from pypproxy.report.generator import generate_html, generate_markdown
-from pypproxy.security.idor import _extract_id_params, _generate_test_ids
-from pypproxy.session.manager import SessionManager
-from pypproxy.store.models import Entry
 
 
 def make_entry(**kwargs) -> Entry:
@@ -175,7 +175,7 @@ def test_macro_to_json_roundtrip():
 
 
 def test_macro_step_substitution():
-    from pypproxy.macro.runner import MacroRunner
+    from pypproxy.tools.macro import MacroRunner
 
     runner = MacroRunner()
     runner.set_variable("token", "abc123")
@@ -191,7 +191,7 @@ def test_macro_step_substitution():
 
 @pytest.mark.asyncio
 async def test_macro_run_error_handling():
-    from pypproxy.macro.runner import MacroRunner
+    from pypproxy.tools.macro import MacroRunner
 
     runner = MacroRunner()
     steps = [MacroStep(name="fail", method="GET", url="http://127.0.0.1:1/unreachable")]
@@ -299,7 +299,7 @@ def test_ab_result_diff_summary():
 
 @pytest.mark.asyncio
 async def test_ab_run_unreachable():
-    from pypproxy.ab_test.runner import run_ab_test
+    from pypproxy.tools.ab_test import run_ab_test
 
     e = make_entry(scheme="http", host="127.0.0.1:1")
     result = await run_ab_test(e, "127.0.0.1:2", timeout=2)

@@ -3,9 +3,9 @@ from __future__ import annotations
 from nicegui import ui
 
 from pypproxy.cert.client_cert import ClientCert, ClientCertManager
-from pypproxy.config.config import Config
-from pypproxy.dns.server import DNSServer
-from pypproxy.rule.rule import RuleManager
+from pypproxy.core.config import Config
+from pypproxy.dns import DNSServer
+from pypproxy.rules import RuleManager
 
 
 def build_settings_page(
@@ -192,7 +192,7 @@ def _build_rules_panel(rules: RuleManager) -> None:
         value_input = ui.input(label="Value").props("dense outlined dark").classes("w-48")
 
         def _add() -> None:
-            from pypproxy.rule.rule import Condition, MatchField, Rule
+            from pypproxy.rules import Condition, MatchField, Rule
 
             if not name_input.value or not value_input.value:
                 ui.notify("Name and Value are required", type="warning")

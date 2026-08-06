@@ -25,6 +25,11 @@ class Store:
     def set_db(self, db: object) -> None:
         self._db = db
 
+    @property
+    def database(self) -> object | None:
+        """The attached `store.db.Database`, or None when persistence is off."""
+        return self._db
+
     # --- write ---
 
     def add(self, entry: Entry) -> Entry:
@@ -66,6 +71,10 @@ class Store:
 
     def get(self, entry_id: int) -> Entry | None:
         return self._by_id.get(entry_id)
+
+    def count(self) -> int:
+        with self._lock:
+            return len(self._entries)
 
     def list(self, f: Filter, offset: int = 0, limit: int = 100) -> tuple[list[Entry], int]:
         with self._lock:

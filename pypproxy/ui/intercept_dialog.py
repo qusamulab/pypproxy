@@ -4,7 +4,7 @@ import asyncio
 
 from nicegui import ui
 
-from pypproxy.intercept.manager import InterceptManager, PendingRequest
+from pypproxy.proxy.intercept import InterceptManager, PendingRequest
 
 
 def build_intercept_panel(mgr: InterceptManager, container: ui.element) -> None:

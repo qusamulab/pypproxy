@@ -1,37 +1,32 @@
-.PHONY: install run dev web-install web-build web-dev test lint clean docs-dev docs-build
+.PHONY: install run gui cui test lint fmt typecheck clean docs-dev docs-build
 
 install:
-	uv sync
+	uv sync --group dev
 
-run:
-	uv run python main.py
+run: gui
 
 gui:
-	uv run python main.py --mode gui
+	uv run python -m pypproxy --mode gui
 
 cui:
-	uv run python main.py --mode cui
-
-web-install:
-	cd web && npm install
-
-web-build:
-	cd web && npm run build
-
-web-dev:
-	cd web && npm run dev
+	uv run python -m pypproxy --mode cui
 
 test:
 	uv run pytest tests/ -v
 
 lint:
-	uv run ruff check paxy/
+	uv run ruff check pypproxy tests
+
+fmt:
+	uv run ruff format pypproxy tests
+	uv run ruff check --fix pypproxy tests
 
 clean:
-	rm -rf __pycache__ paxy/**/__pycache__ .pytest_cache site/ web/dist/
+	find . -name __pycache__ -type d -prune -exec rm -rf {} +
+	rm -rf .pytest_cache .ruff_cache site/
 
 docs-dev:
-	mkdocs serve
+	uv run --group docs mkdocs serve
 
 docs-build:
-	mkdocs build
+	uv run --group docs mkdocs build

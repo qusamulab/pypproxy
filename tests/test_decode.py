@@ -4,7 +4,7 @@ import base64
 import json
 import zlib
 
-from pypproxy.codec import (
+from pypproxy.core.codec import (
     decode_base64_body,
     decode_charset,
     decode_chunked,

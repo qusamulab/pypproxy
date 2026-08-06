@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import math
 import re
+from collections import Counter
 from dataclasses import dataclass
 
 
@@ -128,7 +129,6 @@ def _longest_run_test(bits: list[int]) -> RandomnessResult:
 
 def _entropy_test(token: str) -> RandomnessResult:
     """Shannon entropy of the token characters."""
-    from collections import Counter
 
     counts = Counter(token)
     n = len(token)
@@ -146,7 +146,6 @@ def _entropy_test(token: str) -> RandomnessResult:
 
 def _serial_test(bits: list[int]) -> RandomnessResult:
     """Serial (digram frequency) test."""
-    from collections import Counter
 
     n = len(bits)
     if n < 4:

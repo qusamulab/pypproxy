@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import time
 
-from pypproxy.interceptor.interceptor import Interceptor
-from pypproxy.rule.rule import Action, Condition, MatchField, Modification, Rule, RuleManager
+from pypproxy.proxy.interceptor import Interceptor
+from pypproxy.rules import Action, Condition, MatchField, Modification, Rule, RuleManager
 from pypproxy.store.store import Store
 
 

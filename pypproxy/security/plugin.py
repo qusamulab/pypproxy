@@ -6,6 +6,7 @@ import threading
 from dataclasses import dataclass
 from pathlib import Path
 
+from pypproxy.core.config import CONFIG_DIRNAME
 from pypproxy.store.models import Entry
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class PluginInfo:
 
 
 class PluginBase:
-    """Base class for paxy plugins. Override any hooks you need."""
+    """Base class for pypproxy plugins. Override any hooks you need."""
 
     name: str = "unnamed"
     version: str = "0.1.0"
@@ -46,7 +47,7 @@ class PluginManager:
     def __init__(self, plugin_dir: str | None = None) -> None:
         self._plugins: list[PluginBase] = []
         self._lock = threading.Lock()
-        self._plugin_dir = plugin_dir or str(Path.home() / ".paxy" / "plugins")
+        self._plugin_dir = plugin_dir or str(Path.home() / CONFIG_DIRNAME / "plugins")
 
     def load_directory(self) -> int:
         """Load all .py files from the plugin directory. Returns count loaded."""
@@ -67,7 +68,7 @@ class PluginManager:
         return count
 
     def load_file(self, path: str) -> PluginBase:
-        spec = importlib.util.spec_from_file_location(f"paxy_plugin_{Path(path).stem}", path)
+        spec = importlib.util.spec_from_file_location(f"pypproxy_plugin_{Path(path).stem}", path)
         if spec is None or spec.loader is None:
             raise ImportError(f"Cannot load: {path}")
         mod = importlib.util.module_from_spec(spec)

@@ -204,8 +204,8 @@ def test_schema_store_list_hosts():
 
 
 def test_interceptor_tags_graphql():
-    from pypproxy.interceptor.interceptor import Interceptor
-    from pypproxy.rule.rule import RuleManager
+    from pypproxy.proxy.interceptor import Interceptor
+    from pypproxy.rules import RuleManager
     from pypproxy.store.store import Store
 
     st = Store()
@@ -229,8 +229,8 @@ def test_interceptor_tags_graphql():
 
 
 def test_interceptor_mutation_tagged():
-    from pypproxy.interceptor.interceptor import Interceptor
-    from pypproxy.rule.rule import RuleManager
+    from pypproxy.proxy.interceptor import Interceptor
+    from pypproxy.rules import RuleManager
     from pypproxy.store.store import Store
 
     st = Store()

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 
-import httpx
+from pypproxy.core.http import client as http_client
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ async def fetch_schema(
         req_headers.update(headers)
 
     try:
-        async with httpx.AsyncClient(verify=False, timeout=timeout, http2=True) as client:
+        async with http_client(timeout) as client:
             resp = await client.post(
                 url,
                 json={"query": INTROSPECTION_QUERY},

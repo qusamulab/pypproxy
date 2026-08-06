@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import base64
 import json
 import re
 import time
 from dataclasses import dataclass
 from urllib.parse import parse_qs, urlencode
 
-import httpx
-
+from pypproxy.core.http import REPLAY_DROP_HEADERS, elapsed_ms, flatten_headers
+from pypproxy.core.http import client as http_client
 from pypproxy.store.models import Entry
 
 
@@ -23,8 +24,6 @@ class IDORResult:
     reason: str = ""
 
     def to_dict(self) -> dict:
-        import base64
-
         return {
             "param": self.param,
             "original_value": self.original_value,
@@ -101,7 +100,7 @@ def _extract_id_params(entry: Entry) -> dict[str, str]:
 
 
 def _apply_id(entry: Entry, param_key: str, new_value: str) -> tuple[str, bytes]:
-    url = f"{entry.scheme}://{entry.host}{entry.path}"
+    url = entry.base_url
 
     if param_key.startswith("path:"):
         old_seg = param_key[5:]
@@ -143,11 +142,7 @@ async def run_idor_checks(
     if not id_params:
         return []
 
-    req_headers = {
-        k: ", ".join(v)
-        for k, v in entry.req_headers.items()
-        if k.lower() not in ("host", "content-length")
-    }
+    req_headers = flatten_headers(entry.req_headers, drop=REPLAY_DROP_HEADERS)
 
     results: list[IDORResult] = []
 
@@ -156,7 +151,7 @@ async def run_idor_checks(
             url, body = _apply_id(entry, param_key, test_value)
             start = time.monotonic()
             try:
-                async with httpx.AsyncClient(verify=False, timeout=timeout, http2=True) as client:
+                async with http_client(timeout) as client:
                     resp = await client.request(
                         method=entry.method,
                         url=url,
@@ -165,7 +160,7 @@ async def run_idor_checks(
                     )
                 status = resp.status_code
                 resp_body = resp.content[:512]
-                dur = int((time.monotonic() - start) * 1000)
+                dur = elapsed_ms(start)
 
                 # Vulnerable: different ID returns 2xx (possible IDOR)
                 vulnerable = (
@@ -199,7 +194,7 @@ async def run_idor_checks(
                         param=param_key,
                         original_value=original_value,
                         test_value=test_value,
-                        duration_ms=int((time.monotonic() - start) * 1000),
+                        duration_ms=elapsed_ms(start),
                         reason=str(e),
                     )
                 )

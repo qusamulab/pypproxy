@@ -4,7 +4,7 @@ import json
 
 from nicegui import ui
 
-from pypproxy.codec import (
+from pypproxy.core.codec import (
     decode_base64_body,
     decode_cbor,
     decode_charset,
@@ -20,6 +20,8 @@ from pypproxy.codec import (
     is_likely_base64,
     sniff_content_type,
 )
+from pypproxy.core.http import client as http_client
+from pypproxy.core.http import flatten_headers
 from pypproxy.store.models import Entry
 
 _VIEW_MODES = [
@@ -56,7 +58,7 @@ def render_detail(entry: Entry | None, container: ui.element) -> None:
     with container:
         # --- request ---
         with ui.element("div").classes("pp-detail-section"):
-            url = f"{entry.scheme}://{entry.host}{entry.path}"
+            url = entry.base_url
             if entry.query:
                 url += "?" + entry.query
             with ui.row().classes("items-center gap-2 q-mb-sm"):
@@ -120,7 +122,7 @@ def render_detail(entry: Entry | None, container: ui.element) -> None:
 
 
 def _render_query_params(query: str) -> None:
-    from pypproxy.codec import decode_url_params
+    from pypproxy.core.codec import decode_url_params
 
     text = decode_url_params(query)
     ui.element("pre").classes("paxy-body-pre").text = text
@@ -274,14 +276,12 @@ def _render_headers(headers: dict[str, list[str]]) -> None:
 
 
 async def _replay(entry: Entry) -> None:
-    import httpx
-
-    url = f"{entry.scheme}://{entry.host}{entry.path}"
+    url = entry.base_url
     if entry.query:
         url += "?" + entry.query
-    headers = {k: ", ".join(v) for k, v in entry.req_headers.items()}
+    headers = flatten_headers(entry.req_headers)
     try:
-        async with httpx.AsyncClient(verify=False, timeout=30, http2=True) as client:
+        async with http_client(30) as client:
             resp = await client.request(
                 method=entry.method,
                 url=url,

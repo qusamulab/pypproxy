@@ -5,7 +5,7 @@ pypproxy can be configured via CLI flags or a YAML file. CLI flags take preceden
 ## YAML config file
 
 ```bash
-uv run python main.py --config pypproxy.yaml
+uv run python -m pypproxy --config pypproxy.yaml
 ```
 
 ### Full example
@@ -48,8 +48,8 @@ script:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `cert_path` | string | `~/.paxy/ca-cert.pem` | CA certificate path |
-| `key_path` | string | `~/.paxy/ca-key.pem` | CA private key path |
+| `cert_path` | string | `~/.pypproxy/ca-cert.pem` | CA certificate path |
+| `key_path` | string | `~/.pypproxy/ca-key.pem` | CA private key path |
 
 ### `ui`
 
@@ -75,4 +75,4 @@ script:
 | `--ui-port` | `8081` | Web UI / API port |
 | `--config` | — | Config file path |
 | `--script` | — | Python script path |
-| `--ca-dir` | `~/.paxy` | Directory to store CA cert and key |
+| `--ca-dir` | `~/.pypproxy` | Directory to store CA cert and key |
