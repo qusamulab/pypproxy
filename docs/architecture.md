@@ -3,75 +3,87 @@
 ## Overview
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  Client (browser / mobile app)                               │
-└────────────────────────┬─────────────────────────────────────┘
-                         │ HTTP / CONNECT
-┌────────────────────────▼─────────────────────────────────────┐
-│  pypproxy/proxy/proxy.py  (port :8080)                           │
-│  asyncio TCP server                                          │
-│  ├─ HTTP  → intercept → forward upstream (httpx, HTTP/2)     │
-│  ├─ CONNECT → TLS termination (MITM)                         │
-│  │    ├─ HTTP/HTTPS → intercept → forward upstream           │
-│  │    ├─ WebSocket  → pypproxy/proto/ws.py                       │
-│  │    ├─ gRPC       → pypproxy/proto/grpc.py                     │
-│  │    └─ MQTT       → pypproxy/proto/mqtt.py                     │
-│  └─ ignored hosts → raw TCP tunnel (passthrough)             │
-└─────────────┬────────────────────────┬───────────────────────┘
-              │                        │
-┌─────────────▼──────┐    ┌────────────▼──────────────────────┐
-│  pypproxy/cert/ca.py   │    │  pypproxy/interceptor/                 │
-│  CA + per-host TLS │    │  apply rules, record entries       │
-│  SSL Context cache │    └────────────┬───────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│  Client (browser / mobile app)                                │
+└─────────────────────────┬─────────────────────────────────────┘
+                          │ HTTP / CONNECT
+┌─────────────────────────▼─────────────────────────────────────┐
+│  proxy/server.py  (port :8080)   asyncio TCP server           │
+│  ├─ HTTP    → intercept → forward upstream (httpx, HTTP/2)    │
+│  ├─ CONNECT → TLS termination (MITM)                          │
+│  │     ├─ HTTP/HTTPS → intercept → forward upstream           │
+│  │     ├─ WebSocket  → protocols/ws.py                        │
+│  │     ├─ gRPC       → protocols/grpc.py                      │
+│  │     └─ MQTT       → protocols/mqtt.py                      │
+│  └─ ignored hosts → raw TCP tunnel (passthrough)              │
+└──────────────┬───────────────────────┬────────────────────────┘
+               │                       │
+┌──────────────▼─────┐   ┌─────────────▼─────────────────────┐
+│  cert/ca.py        │   │  proxy/interceptor.py             │
+│  CA + per-host TLS │   │  apply rules, record entries      │
+│  SSL Context cache │   └─────────────┬─────────────────────┘
 │                    │                 │
-│  pypproxy/cert/        │    ┌────────────▼───────────────────────┐
-│  client_cert.py    │    │  pypproxy/store/store.py               │
-│  Mutual TLS certs  │    │  in-memory store + SQLite persist  │
-└────────────────────┘    │  asyncio pub/sub                   │
-                          └────────────┬───────────────────────┘
+│  cert/             │   ┌─────────────▼─────────────────────┐
+│  client_cert.py    │   │  store/store.py                   │
+│  Mutual TLS certs  │   │  in-memory store + SQLite persist │
+└────────────────────┘   │  asyncio pub/sub                  │
+                         └─────────────┬─────────────────────┘
                                        │
           ┌────────────────────────────┼──────────────────────┐
           │                            │                      │
-┌─────────▼──────────┐   ┌─────────────▼─────────┐  ┌────────▼──────────┐
-│  pypproxy/api/         │   │  pypproxy/ui/app.py        │  │  pypproxy/ui/cui.py   │
-│  FastAPI REST API  │   │  NiceGUI 4-tab UI      │  │  rich terminal UI │
-│  + WebSocket /ws   │   │  Traffic/Resender/     │  │  (CUI mode)       │
-│  Bulk/Export APIs  │   │  Bulk/Diff             │  └───────────────────┘
-└────────────────────┘   └─────────────────────────┘
+┌─────────▼──────────┐   ┌─────────────▼─────────┐  ┌─────────▼─────────┐
+│  api/              │   │  ui/app.py            │  │  ui/cui.py        │
+│  FastAPI routers   │   │  NiceGUI shell        │  │  rich terminal UI │
+│  + WebSocket /ws   │   │  + ui/tabs/*          │  │  (CUI mode)       │
+└────────────────────┘   └───────────────────────┘  └───────────────────┘
 ```
+
+`cli.py` parses arguments, `bootstrap.py` assembles the graph above into an
+`AppContext`, and both UI modes consume that same context.
 
 ## Package overview
 
-| Package | Responsibility |
-|---------|----------------|
-| `pypproxy/proxy` | asyncio TCP server; HTTP forwarding; TLS MITM for CONNECT; raw tunnel for ignored hosts |
-| `pypproxy/cert/ca` | CA certificate generation; per-host SSL Context cache |
-| `pypproxy/cert/client_cert` | Client certificate management for mutual TLS |
-| `pypproxy/interceptor` | Apply rules to requests and responses; record entries in the store |
-| `pypproxy/intercept` | Manual intercept manager; pause requests for user review |
-| `pypproxy/rule` | Rule evaluation engine; condition matching; priority ordering |
-| `pypproxy/store/store` | Thread-safe in-memory traffic store; asyncio pub/sub |
-| `pypproxy/store/db` | SQLite persistence via aiosqlite; load/save entries |
-| `pypproxy/store/filter_parser` | Filter expression parser (`host == x && method == POST`) |
-| `pypproxy/api` | FastAPI REST endpoints, WebSocket streaming, bulk/export APIs |
-| `pypproxy/ui/app` | NiceGUI 4-tab browser UI (Traffic, Resender, Bulk Sender, Diff) |
-| `pypproxy/ui/settings` | Settings page (rules, SSL passthrough, DNS, ports, client certs) |
-| `pypproxy/ui/detail` | Request/response detail panel with body view selector |
-| `pypproxy/ui/resender` | Resender tab — edit and re-send requests |
-| `pypproxy/ui/bulk_sender_ui` | Bulk Sender tab — parallel payload sending and race testing |
-| `pypproxy/ui/diff_view` | Diff tab — unified diff between two captured entries |
-| `pypproxy/ui/intercept_dialog` | Intercept dialog — pause, edit, forward or drop requests |
-| `pypproxy/ui/cui` | rich terminal UI (CUI mode) |
-| `pypproxy/proto/ws` | WebSocket frame relay and logging |
-| `pypproxy/proto/grpc` | gRPC length-prefix frame decoding |
-| `pypproxy/proto/mqtt` | MQTT frame decoding and detection |
-| `pypproxy/script` | Python script engine; `on_request` / `on_response` hooks |
-| `pypproxy/replay` | Async HTTP replay and parallel fuzzing via httpx |
-| `pypproxy/bulk` | Bulk sender and race condition test runner |
-| `pypproxy/dns` | Built-in DNS server with domain spoofing |
-| `pypproxy/exporter` | JSON/HAR export and rule import/export |
-| `pypproxy/codec` | Content-encoding decode (gzip/br/deflate); binary format decode (Protobuf/MessagePack/CBOR) |
-| `pypproxy/config` | YAML config loading |
+All paths below are relative to the `pypproxy/` package.
+
+| Module | Responsibility |
+|--------|----------------|
+| `cli` | Argument parsing and mode dispatch (`python -m pypproxy`) |
+| `bootstrap` | Builds the `AppContext` both UI modes share |
+| `core/config` | YAML config loading and saving |
+| `core/codec` | Content-encoding decode (gzip/br/deflate); binary formats (Protobuf/MessagePack/CBOR) |
+| `core/http` | Shared httpx client factory, header flattening, URL building |
+| `proxy/server` | asyncio TCP server; HTTP forwarding; TLS MITM for CONNECT; raw tunnel for ignored hosts |
+| `proxy/messages` | Raw HTTP/1.1 request parsing and response framing |
+| `proxy/interceptor` | Apply rules to requests and responses; record entries in the store |
+| `proxy/intercept` | Manual intercept manager; pause requests for user review |
+| `rules` | Rule evaluation engine; condition matching; priority ordering |
+| `cert/ca` | CA certificate generation; per-host SSL Context cache |
+| `cert/client_cert` | Client certificate management for mutual TLS |
+| `store/models` | `Entry` and `Filter`, the shared traffic model |
+| `store/store` | Thread-safe in-memory traffic store; asyncio pub/sub |
+| `store/db` | SQLite persistence via aiosqlite; load/save entries |
+| `store/filter_parser` | Filter expression parser (`host == x && method == POST`) |
+| `store/scope` | Host scoping — decide which traffic gets recorded |
+| `api/` | FastAPI routers (`routes/`), dependencies (`deps`), request schemas |
+| `ui/app` | NiceGUI shell: sidebar, toolbar, live traffic feed |
+| `ui/pages` | Page registry mapping nav items to lazily imported tab builders |
+| `ui/workspace` | State shared across pages (filter, pending entry, diff selection) |
+| `ui/traffic` | Traffic table, row context menu, detail pane |
+| `ui/tabs/` | One module per tool tab |
+| `ui/settings` | Settings page (rules, SSL passthrough, DNS, ports, client certs) |
+| `ui/cui` | rich terminal UI (CUI mode) |
+| `protocols/ws` | WebSocket frame relay and logging |
+| `protocols/grpc` | gRPC length-prefix frame decoding |
+| `protocols/mqtt` | MQTT frame decoding and detection |
+| `script` | Python script engine; `on_request` / `on_response` hooks |
+| `tools/` | replay, bulk sender, macro runner, A/B test, code generation |
+| `security/` | Header/JWT/IDOR/overflow checks, randomness analysis, active scanner |
+| `reporting/` | HTML & Markdown reports, OpenAPI generation, traffic analytics |
+| `exchange/` | JSON/HAR export and rule import/export |
+| `graphql/` | GraphQL detection, introspection, schema store, query modification |
+| `frida/` | Frida device control, hook generation, SSL pinning bypass |
+| `dns` | Built-in DNS server with domain spoofing |
+| `session` | Named groupings of captured entries |
 
 ## Key design decisions
 
@@ -98,11 +110,11 @@ All upstream requests use `httpx` with `http2=True`. httpx negotiates HTTP/2 via
 
 ### Filter expression engine
 
-The filter bar in the UI accepts a structured expression parsed by `pypproxy/store/filter_parser.py`. The parser tokenizes `field op value` conditions and evaluates them with AND/OR short-circuit logic against `Entry` objects in memory.
+The filter bar in the UI accepts a structured expression parsed by `store/filter_parser.py`. The parser tokenizes `field op value` conditions and evaluates them with AND/OR short-circuit logic against `Entry` objects in memory.
 
 ### Binary format detection
 
-`pypproxy/codec.py` implements `sniff_content_type()` which combines Content-Type inspection with a JSON parse attempt and a binary entropy heuristic to guess the best display mode. Protobuf decoding uses wire-type heuristics without requiring a `.proto` schema.
+`core/codec.py` implements `sniff_content_type()` which combines Content-Type inspection with a JSON parse attempt and a binary entropy heuristic to guess the best display mode. Protobuf decoding uses wire-type heuristics without requiring a `.proto` schema.
 
 ### GUI / CUI startup
 

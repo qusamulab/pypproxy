@@ -5,7 +5,7 @@ Scripts let you transform requests and responses with arbitrary Python logic —
 ## Loading a script
 
 ```bash
-uv run python main.py --script /path/to/script.py
+uv run python -m pypproxy --script /path/to/script.py
 ```
 
 Or via config file:

@@ -49,11 +49,11 @@ pypproxy --mode cui
 pypproxy MITM proxy
   proxy : 0.0.0.0:8080
   UI    : http://0.0.0.0:8081
-  CA    : /Users/you/.paxy/ca-cert.pem
+  CA    : /Users/you/.pypproxy/ca-cert.pem
   DB    : /Users/you/.paxy/pypproxy.db
 ```
 
-On first run, `~/.paxy/ca-cert.pem` and `~/.paxy/ca-key.pem` are generated automatically.
+On first run, `~/.pypproxy/ca-cert.pem` and `~/.pypproxy/ca-key.pem` are generated automatically.
 
 ## Install the CA certificate
 
@@ -61,13 +61,13 @@ On first run, `~/.paxy/ca-cert.pem` and `~/.paxy/ca-key.pem` are generated autom
 
 ```bash
 sudo security add-trusted-cert -d -r trustRoot \
-  -k /Library/Keychains/System.keychain ~/.paxy/ca-cert.pem
+  -k /Library/Keychains/System.keychain ~/.pypproxy/ca-cert.pem
 ```
 
 ### Firefox
 
 1. **Settings** → **Privacy & Security** → **View Certificates** → **Authorities**
-2. **Import** → select `~/.paxy/ca-cert.pem`
+2. **Import** → select `~/.pypproxy/ca-cert.pem`
 3. Check **Trust this CA to identify websites**
 
 ### Android

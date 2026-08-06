@@ -36,7 +36,7 @@ See the **[docs](https://ykus4.github.io/pypproxy/)** for setup, CA installation
 | **Frida** | SSL pinning bypass scripts, script injection, device management |
 | **Sessions** | Group entries into named sessions with persistence |
 | **Report** | Export HTML or Markdown report with findings |
-| **Import/Export** | HAR, paxy JSON, OpenAPI, rules |
+| **Import/Export** | HAR, pypproxy JSON, OpenAPI, rules |
 | **Full-text search** | SQLite FTS5 across all captured traffic |
 | **Scope** | Capture only in-scope hosts |
 | **DNS spoofing** | Built-in DNS server with domain override |
@@ -54,7 +54,7 @@ pypproxy
 
 # Install CA certificate (macOS)
 sudo security add-trusted-cert -d -r trustRoot \
-  -k /Library/Keychains/System.keychain ~/.paxy/ca-cert.pem
+  -k /Library/Keychains/System.keychain ~/.pypproxy/ca-cert.pem
 
 # Set system proxy (macOS)
 networksetup -setwebproxy Wi-Fi 127.0.0.1 8080
@@ -79,7 +79,7 @@ Enables one-click SSL pinning bypass and script injection from the Frida tab.
 --ui-port    Web UI port (default 8081)
 --config     Path to YAML config file
 --script     Path to Python script file
---ca-dir     CA cert directory (default ~/.paxy)
+--ca-dir     CA cert directory (default ~/.pypproxy)
 --no-db      Disable SQLite persistence
 ```
 
