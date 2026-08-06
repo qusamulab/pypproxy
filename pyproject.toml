@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.scripts]
-pypproxy = "main:main"
+pypproxy = "pypproxy.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -61,7 +61,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["paxy", "pypproxy"]
+known-first-party = ["pypproxy"]
 
 [tool.ruff.format]
 quote-style = "double"

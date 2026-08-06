@@ -3,8 +3,8 @@ from __future__ import annotations
 import base64
 import json
 
-from pypproxy.security.header_checker import check_security_headers
-from pypproxy.security.jwt_checker import (
+from pypproxy.security.headers import check_security_headers
+from pypproxy.security.jwt import (
     _parse_jwt,
     extract_jwt_from_headers,
     generate_test_tokens,

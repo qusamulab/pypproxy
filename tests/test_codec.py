@@ -3,7 +3,7 @@ from __future__ import annotations
 import gzip
 import json
 
-from pypproxy.codec import (
+from pypproxy.core.codec import (
     decode_body,
     decode_cbor,
     decode_msgpack,
@@ -75,21 +75,21 @@ def test_sniff_text():
 def test_decode_msgpack_roundtrip():
     import msgpack
 
-    data = {"name": "paxy", "version": 1}
+    data = {"name": "pypproxy", "version": 1}
     packed = msgpack.packb(data)
     result = decode_msgpack(packed)
     parsed = json.loads(result)
-    assert parsed["name"] == "paxy"
+    assert parsed["name"] == "pypproxy"
 
 
 def test_decode_cbor_roundtrip():
     import cbor2
 
-    data = {"tool": "paxy", "active": True}
+    data = {"tool": "pypproxy", "active": True}
     packed = cbor2.dumps(data)
     result = decode_cbor(packed)
     parsed = json.loads(result)
-    assert parsed["tool"] == "paxy"
+    assert parsed["tool"] == "pypproxy"
 
 
 def test_decode_msgpack_invalid():

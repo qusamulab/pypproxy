@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import struct
 
-from pypproxy.proto.mqtt import decode_frames, is_mqtt
+from pypproxy.protocols.mqtt import decode_frames, is_mqtt
 
 
 def _make_connect_packet() -> bytes:
@@ -10,7 +10,7 @@ def _make_connect_packet() -> bytes:
     proto_level = b"\x04"
     connect_flags = b"\x02"  # clean session
     keepalive = b"\x00\x3c"  # 60s
-    client_id = b"\x00\x06paxyid"
+    client_id = struct.pack(">H", len(b"pypproxy-test")) + b"pypproxy-test"
     payload = proto_name + proto_level + connect_flags + keepalive + client_id
     remaining = len(payload)
     return bytes([0x10, remaining]) + payload

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from pypproxy.bulk.sender import BulkPayload, bulk_send, race_send
 from pypproxy.store.models import Entry
+from pypproxy.tools.bulk import BulkPayload, bulk_send, race_send
 
 
 def make_entry() -> Entry:
@@ -49,7 +49,7 @@ def test_bulk_payload_defaults():
 def test_bulk_result_to_dict():
     import base64
 
-    from pypproxy.bulk.sender import BulkResult
+    from pypproxy.tools.bulk import BulkResult
 
     r = BulkResult(label="r1", status_code=200, body=b"hello", duration_ms=42)
     d = r.to_dict()

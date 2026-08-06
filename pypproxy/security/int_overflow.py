@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import contextlib
 import json
 import re
 import time
@@ -7,8 +9,8 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import parse_qs, urlencode
 
-import httpx
-
+from pypproxy.core.http import client as http_client
+from pypproxy.core.http import elapsed_ms, flatten_headers
 from pypproxy.store.models import Entry
 
 
@@ -30,8 +32,6 @@ class OverflowResult:
     suspicious: bool = False
 
     def to_dict(self) -> dict:
-        import base64
-
         return {
             "param": self.param,
             "label": self.payload.label,
@@ -71,8 +71,6 @@ def _extract_int_params(entry: Entry) -> dict[str, int]:
 
     # query string
     if entry.query:
-        import contextlib
-
         for k, vs in parse_qs(entry.query).items():
             for v in vs:
                 with contextlib.suppress(ValueError):
@@ -136,8 +134,8 @@ async def run_checks(entry: Entry, timeout: int = 30) -> list[OverflowResult]:
         return []
 
     results: list[OverflowResult] = []
-    url_base = f"{entry.scheme}://{entry.host}{entry.path}"
-    req_headers = {k: ", ".join(v) for k, v in entry.req_headers.items()}
+    url_base = entry.base_url
+    req_headers = flatten_headers(entry.req_headers)
 
     for param_key, original_value in int_params.items():
         payloads = []
@@ -160,7 +158,7 @@ async def run_checks(entry: Entry, timeout: int = 30) -> list[OverflowResult]:
 
             start = time.monotonic()
             try:
-                async with httpx.AsyncClient(verify=False, timeout=timeout, http2=True) as client:
+                async with http_client(timeout) as client:
                     resp = await client.request(
                         method=entry.method,
                         url=url,
@@ -177,7 +175,7 @@ async def run_checks(entry: Entry, timeout: int = 30) -> list[OverflowResult]:
                 error = str(e)
                 suspicious = False
 
-            dur = int((time.monotonic() - start) * 1000)
+            dur = elapsed_ms(start)
             results.append(
                 OverflowResult(
                     param=param_key,

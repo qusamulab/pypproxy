@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
@@ -32,9 +33,21 @@ class Entry:
     graphql_operation: str = ""  # operation name if GraphQL
     graphql_op_type: str = ""  # query | mutation | subscription
 
-    def to_dict(self) -> dict:
-        import base64
+    @property
+    def base_url(self) -> str:
+        """Request URL without the query string."""
+        return f"{self.scheme}://{self.host}{self.path}"
 
+    @property
+    def url(self) -> str:
+        """Full request URL, query string included."""
+        return self.base_url + (f"?{self.query}" if self.query else "")
+
+    def summary(self) -> str:
+        """One-line human label, e.g. `#12 GET https://example.com/api`."""
+        return f"#{self.id} {self.method} {self.base_url}"
+
+    def to_dict(self) -> dict:
         return {
             "id": self.id,
             "created_at": self.created_at.isoformat(),
