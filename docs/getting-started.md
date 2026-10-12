@@ -22,7 +22,7 @@ pip install 'pypproxy[frida]'
 ### From source
 
 ```bash
-git clone https://github.com/ykus4/pypproxy
+git clone https://github.com/qusamulab/pypproxy
 cd pypproxy
 uv sync
 ```
